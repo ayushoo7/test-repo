@@ -1,0 +1,124 @@
+package com.solution.test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.IntStream;
+
+public class Solution {
+
+	public static void main(String[] args) {
+		int n = findBreakDuration(3, 2, 15, Arrays.asList(0, 6, 7), Arrays.asList(5, 7, 8));
+		System.out.println(n);
+	}
+
+	static int findBreakDuration(int n, int k, int t, List<Integer> start, List<Integer> finish) {
+		start = new LinkedList<>(start);
+		finish = new LinkedList<>(finish);
+		int[] fillarray = new int[t];
+		List<Integer> diffArray = new LinkedList<>();
+
+		Collections.sort(start);
+		Collections.sort(finish);
+		if (k > n) {
+			return 0;
+		}
+		if (start.size() != finish.size()) {
+			return 0;
+		}
+
+		for (int i = 0; i < start.size(); i++) {
+			diffArray.add(finish.get(i) - start.get(i));
+		}
+		if (k == 0) {
+			int i = 0;
+			while (!start.isEmpty()) {
+				Integer init = start.remove(i);
+				Integer finalize = finish.remove(i);
+				Arrays.fill(fillarray, init.intValue(), finalize.intValue() + 1, 1);
+				i++;
+			}
+			return gettingMaxCount(fillarray);
+		} else {
+			int diff = n - k;
+			for (int i = 0; i < diff; i++) {
+				
+				Integer position = getMaximum(diffArray);
+				diffArray.remove(diffArray.get(position));	
+				start.remove(diffArray.get(position));
+				finish.remove(diffArray.get(position));
+				Integer init = 0;
+				Integer finalize = 0;
+				if (position < start.size()) {
+					init = start.remove(position.intValue());
+					
+				}
+				if (position < start.size()){
+					finalize = finish.remove(position.intValue());					
+				}
+				Arrays.fill(fillarray, init.intValue(), finalize.intValue(), 1);
+			}		
+			
+			while(!diffArray.isEmpty()){	
+				Integer position = getMaximum(diffArray);
+				Integer now = diffArray.get(position);
+				for (int j = 0; j < fillarray.length; j++) {
+					if(fillarray[j] == 0 && now > 0){
+						now--;
+					}
+					if(now ==0 && fillarray[j] ==0){
+						Integer init = 0;
+						Integer finalize = 0;
+						if (position < start.size()) {
+							init = start.remove(position.intValue());
+							
+						}
+						if (position < finish.size()){
+							finalize = finish.remove(position.intValue());					
+						}
+						Arrays.fill(fillarray, init.intValue(), finalize.intValue(), 1);
+						break;
+					}
+				}
+				diffArray.remove(diffArray.get(position));	
+			}
+			
+			
+
+			return gettingMaxCount(fillarray);
+		}
+
+	}
+
+	private static Integer getMaximum(List<Integer> diffArray) {
+		final List<Integer> consumer = new ArrayList<>();
+		IntStream.range(0, diffArray.size()).boxed().max(Comparator.comparing(diffArray::get))
+				.ifPresent(x -> consumer.add(x.intValue()));
+		Integer position = consumer.remove(0);
+		return position;
+	}
+
+	private static int gettingMaxCount(int[] fillarray) {
+		int count = 0;
+		int maxCount = 0;
+		for (int j = 0; j < fillarray.length; j++) {
+			if (fillarray[j] == 0) {
+				count++;
+			} else {
+				if (count > maxCount) {
+					maxCount = count;
+					count = 0;
+				}
+			}
+		}
+		if (count > maxCount) {
+			maxCount = count;
+			count = 0;
+		}
+		return maxCount;
+	}
+
+}
